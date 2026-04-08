@@ -6,6 +6,7 @@ Full-stack web app to generate AI marketing images/videos through the ComfyUI AP
 
 - Frontend: React + Vite + Tailwind CSS + Axios
 - Backend: Node.js + Express + Axios
+- Database: MySQL (persistent generation history)
 
 ## Project Structure
 
@@ -44,9 +45,15 @@ Create `backend/.env` from `backend/.env.example`:
 PORT=4000
 SERVER_COMFY_URL=https://YOUR_COMFY_DOMAIN
 SERVER_API_KEY=replace-with-a-secure-api-key
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=
+MYSQL_DATABASE=ai_marketing
 ```
 
 `SERVER_COMFY_URL` is required and **must not be hardcoded**.
+`MYSQL_DATABASE` should be set to your created DB (for you: `ai_marketing`).
 
 ## Frontend Environment Variables
 
@@ -155,6 +162,5 @@ Open Vite URL (usually `http://localhost:5173`).
 
 ## Notes for Production
 
-- Replace in-memory history with DB persistence.
 - Add robust retry/backoff and job status tracking.
 - Configure HTTPS + secure secret management.

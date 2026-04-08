@@ -15,8 +15,13 @@ router.get("/persons", (_req, res) => {
   res.json({ people });
 });
 
-router.get("/history", (_req, res) => {
-  res.json({ items: getHistory() });
+router.get("/history", async (_req, res) => {
+  try {
+    const items = await getHistory();
+    res.json({ items });
+  } catch (error) {
+    res.status(500).json({ error: error.message || "Unable to fetch history." });
+  }
 });
 
 router.post("/generate", async (req, res) => {
@@ -50,7 +55,7 @@ router.post("/generate", async (req, res) => {
       url: media.url,
       createdAt: new Date().toISOString(),
     };
-    addHistory(historyItem);
+    await addHistory(historyItem);
 
     return res.json({
       promptId,
