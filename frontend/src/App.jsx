@@ -13,6 +13,9 @@ function App() {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
+  const [trainingFiles, setTrainingFiles] = useState([]);
+  const [trainingJobs, setTrainingJobs] = useState([]);
+  const [trainingLoading, setTrainingLoading] = useState(false);
 
   const apiKey = import.meta.env.VITE_API_KEY;
 
@@ -33,6 +36,8 @@ function App() {
 
         setPeople(peopleResponse.data.people || []);
         setHistory(historyResponse.data.items || []);
+        const trainingResponse = await api.get("/train/jobs", requestConfig);
+        setTrainingJobs(trainingResponse.data.jobs || []);
       } catch (loadError) {
         setError(loadError.response?.data?.error || "Unable to fetch initial data.");
       }
@@ -64,6 +69,35 @@ function App() {
       setError(generateError.response?.data?.error || "Generation failed.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleStartTraining(event) {
+    event.preventDefault();
+    setError("");
+    setTrainingLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("person", person);
+      for (const file of trainingFiles) {
+        formData.append("photos", file);
+      }
+
+      await api.post("/train/start", formData, {
+        ...requestConfig,
+        headers: {
+          ...(requestConfig.headers || {}),
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const jobsResponse = await api.get("/train/jobs", requestConfig);
+      setTrainingJobs(jobsResponse.data.jobs || []);
+    } catch (trainError) {
+      setError(trainError.response?.data?.error || "Training start failed.");
+    } finally {
+      setTrainingLoading(false);
     }
   }
 
@@ -147,6 +181,29 @@ function App() {
         </div>
 
         <section className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4">
+          <h2 className="text-lg font-medium">Train Person LoRA</h2>
+          <form onSubmit={handleStartTraining} className="mt-3 space-y-3">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(event) => setTrainingFiles(Array.from(event.target.files || []))}
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 p-2 text-sm"
+            />
+            <p className="text-xs text-slate-400">
+              Upload 25-30 photos for {person}. Output `.safetensors` will be used automatically after training completes.
+            </p>
+            <button
+              type="submit"
+              disabled={trainingLoading}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-60"
+            >
+              {trainingLoading ? "Starting training..." : "Start Training"}
+            </button>
+          </form>
+        </section>
+
+        <section className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4">
           <h2 className="text-lg font-medium">Recent Generations</h2>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             {history.map((item) => (
@@ -161,6 +218,19 @@ function App() {
                 >
                   Open output
                 </a>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4">
+          <h2 className="text-lg font-medium">Training Jobs</h2>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {trainingJobs.map((job) => (
+              <article key={job.promptId} className="rounded-lg border border-slate-800 bg-slate-950 p-3 text-sm">
+                <p className="text-xs uppercase tracking-wide text-slate-400">{job.person}</p>
+                <p className="mt-1">Status: {job.status}</p>
+                <p className="mt-1 break-all text-xs text-slate-300">LoRA: {job.loraName || "pending"}</p>
               </article>
             ))}
           </div>

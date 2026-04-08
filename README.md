@@ -36,6 +36,7 @@ Full-stack web app to generate AI marketing images/videos through the ComfyUI AP
 - Generation history list
 - Download output button
 - API key middleware for backend routes
+- LoRA training pipeline (25-30 photos per person via ComfyUI API)
 
 ## Backend Environment Variables
 
@@ -50,6 +51,8 @@ MYSQL_PORT=3306
 MYSQL_USER=root
 MYSQL_PASSWORD=
 MYSQL_DATABASE=ai_marketing
+TRAINING_STEPS=1200
+TRAINING_LR=0.0001
 ```
 
 `SERVER_COMFY_URL` is required and **must not be hardcoded**.
@@ -89,6 +92,19 @@ You can add/remove people and styles as needed.
 
 - `workflow["lora_node"].inputs.lora_name`
 - `workflow["prompt_node"].inputs.text`
+
+## Training Workflow Template
+
+`backend/training-workflow.json` is used for training jobs. Backend injects:
+
+- `dataset_node.inputs.person_name`
+- `dataset_node.inputs.image_subfolder`
+- `dataset_node.inputs.image_files`
+- `training_node.inputs.output_lora_name`
+- `training_node.inputs.steps`
+- `training_node.inputs.learning_rate`
+
+After training completes, produced `.safetensors` is stored in MySQL (`person_models`) and generation automatically uses the latest completed LoRA for that person.
 
 ### Example `workflow.json`
 
@@ -138,6 +154,8 @@ You can add/remove people and styles as needed.
 
 - `GET /persons`
 - `GET /history`
+- `POST /train/start` (multipart form-data: `person`, `photos[]` with 25-30 images)
+- `GET /train/jobs`
 - `GET /health`
 
 ## Run Locally

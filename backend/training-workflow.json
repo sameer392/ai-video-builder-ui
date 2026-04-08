@@ -1,0 +1,18 @@
+{
+  "dataset_node": {
+    "class_type": "TrainingDatasetLoader",
+    "inputs": {
+      "person_name": "sameer",
+      "image_subfolder": "training/sameer/sample-job",
+      "image_files": []
+    }
+  },
+  "training_node": {
+    "class_type": "LoraTrainer",
+    "inputs": {
+      "output_lora_name": "sameer-trained.safetensors",
+      "steps": 1200,
+      "learning_rate": 0.0001
+    }
+  }
+}

@@ -1,6 +1,7 @@
 const express = require("express");
 const personConfig = require("../config/personConfig");
 const { addHistory, getHistory } = require("../config/historyStore");
+const { getLatestReadyLora } = require("../config/modelStore");
 const { buildWorkflow } = require("../services/workflowService");
 const { submitPrompt, pollForMedia } = require("../services/comfyClient");
 
@@ -37,9 +38,11 @@ router.post("/generate", async (req, res) => {
       return res.status(400).json({ error: `Unknown person: ${person}` });
     }
 
+    const trainedLora = await getLatestReadyLora(person.toLowerCase());
+    const finalLora = trainedLora || selectedPerson.lora;
     const finalPrompt = `${script}\n\nStyle: ${selectedPerson.style}`;
     const workflow = await buildWorkflow({
-      loraName: selectedPerson.lora,
+      loraName: finalLora,
       promptText: finalPrompt,
     });
 
