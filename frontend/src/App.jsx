@@ -84,13 +84,7 @@ function App() {
         formData.append("photos", file);
       }
 
-      await api.post("/train/start", formData, {
-        ...requestConfig,
-        headers: {
-          ...(requestConfig.headers || {}),
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await api.post("/train/start", formData, requestConfig);
 
       const jobsResponse = await api.get("/train/jobs", requestConfig);
       setTrainingJobs(jobsResponse.data.jobs || []);

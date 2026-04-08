@@ -63,6 +63,9 @@ async function insertTrainingJob(job) {
 
 async function updateTrainingJob(promptId, updates) {
   const db = getPool();
+  const loraName = updates.loraName === undefined ? null : updates.loraName;
+  const status = updates.status === undefined ? null : updates.status;
+  const errorMessage = updates.errorMessage === undefined ? null : updates.errorMessage;
   await db.query(
     `UPDATE person_models
      SET lora_name = COALESCE(?, lora_name),
@@ -70,7 +73,7 @@ async function updateTrainingJob(promptId, updates) {
          error_message = ?,
          updated_at = ?
      WHERE prompt_id = ?`,
-    [updates.loraName || null, updates.status || null, updates.errorMessage || null, updates.updatedAt, promptId]
+    [loraName, status, errorMessage, updates.updatedAt, promptId]
   );
 }
 
